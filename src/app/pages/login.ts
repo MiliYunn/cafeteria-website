@@ -1,8 +1,9 @@
+import { HttpErrorResponse } from "@angular/common/http";
 import { Component, inject } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { ToastrService } from "ngx-toastr";
-import { finalize } from "rxjs";
+import { finalize, timeout, TimeoutError } from "rxjs";
 import { AuthService, apiError } from "../core/auth";
 import { Icon } from "../shared/icon";
 
@@ -27,9 +28,14 @@ import { Icon } from "../shared/icon";
           <div class="info-banner">Your one-day session has expired. Please sign in again.</div>
         }
         <form [formGroup]="form" (ngSubmit)="submit()">
-          <label><span>Email address</span><input type="email" formControlName="email" autocomplete="email" placeholder="st000001@gmail.com" /></label>
-          <label><span>Password</span><input type="password" formControlName="password" autocomplete="current-password" placeholder="Enter your password" /></label>
-          @if (error) { <div class="error-banner">{{ error }}</div> }
+          <label><span>Email address</span><input type="email" formControlName="email" autocomplete="email" placeholder="st000001@gmail.com" [attr.aria-invalid]="error ? true : null" /></label>
+          <label><span>Password</span><input type="password" formControlName="password" autocomplete="current-password" placeholder="Enter your password" [attr.aria-invalid]="error ? true : null" /></label>
+          @if (error) {
+            <div class="login-warning" role="alert" aria-live="assertive">
+              <strong>Unable to sign in</strong>
+              <span>{{ error }}</span>
+            </div>
+          }
           <button class="primary wide" [disabled]="busy">
             @if (busy) { <span class="spinner"></span> } @else { <app-icon name="food" [size]="19" /> }
             {{ busy ? "Signing in…" : "Sign in" }}
@@ -62,13 +68,26 @@ export class LoginPage {
     this.error = "";
     this.auth
       .login(this.form.getRawValue().email, this.form.getRawValue().password)
-      .pipe(finalize(() => (this.busy = false)))
+      .pipe(
+        timeout(10000),
+        finalize(() => (this.busy = false)),
+      )
       .subscribe({
         next: () => {
           this.toast.success("Welcome to Cafeteria.");
           void this.router.navigate(["/shops"]);
         },
-        error: (error) => (this.error = apiError(error)),
+        error: (error) => {
+          if (error instanceof TimeoutError) {
+            this.error = "The server is taking too long to respond. Check that the backend is running, then try again.";
+          } else if (error instanceof HttpErrorResponse && error.status === 401) {
+            this.error = "The email address or password is incorrect. Please check both fields and try again.";
+          } else if (error instanceof HttpErrorResponse && error.status === 0) {
+            this.error = "Cannot connect to the Cafeteria server. Check that the backend is running and restart it after configuration changes.";
+          } else {
+            this.error = apiError(error);
+          }
+        },
       });
   }
 }

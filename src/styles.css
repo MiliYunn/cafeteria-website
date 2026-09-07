@@ -252,6 +252,9 @@ button { cursor: pointer; }
 .form-divider span { position: relative; top: -9px; padding-right: 10px; background: white; color: var(--muted); font-size: .68rem; font-weight: 800; }
 .error-banner, .info-banner { margin: 12px 0; padding: 11px 12px; border-radius: 11px; background: #fff0f1; color: #aa2835; font-size: .76rem; line-height: 1.45; }
 .info-banner { background: #eef4fb; color: #326181; }
+.login-warning { display: grid; gap: 3px; padding: 12px 14px; border: 1px solid #efb5bb; border-radius: 12px; background: #fff0f1; color: #8f1f2b; font-size: .76rem; line-height: 1.45; }
+.login-warning strong { font-size: .8rem; }
+.login-card input[aria-invalid="true"] { border-color: #d85663; background: #fffafb; }
 .empty-card { grid-column: 1/-1; min-height: 240px; padding: 35px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 1px dashed #d8cedb; border-radius: 18px; color: var(--muted); }
 .empty-card h2 { color: var(--ink); margin: 12px 0 5px; }
 .empty-card p { margin: 0 0 15px; font-size: .8rem; }
